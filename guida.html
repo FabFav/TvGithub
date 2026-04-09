@@ -10,6 +10,108 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<script>
+(function() {
+  var AUTH_URL = 'https://raw.githubusercontent.com/FabFav/TV/main/auth.json';
+  var SESSION_KEY = 'si_auth';
+
+  function sha256(str) {
+    var buf = new TextEncoder().encode(str);
+    return crypto.subtle.digest('SHA-256', buf).then(function(hash) {
+      return Array.from(new Uint8Array(hash)).map(function(b) {
+        return b.toString(16).padStart(2, '0');
+      }).join('');
+    });
+  }
+
+  function showLogin(onSuccess) {
+    var overlay = document.createElement('div');
+    overlay.id = 'authOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#0a0a0f;display:flex;align-items:center;justify-content:center;font-family:"DM Sans",sans-serif;';
+    overlay.innerHTML = `
+      <div style="background:#16161f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:2rem;width:100%;max-width:360px;margin:1rem;box-shadow:0 30px 80px rgba(0,0,0,.8);">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <div style="width:8px;height:8px;background:#e6503c;border-radius:50%;animation:pulse 2s infinite;"></div>
+            Stream<span style="color:#e6503c">Italia</span>
+          </div>
+          <div style="color:#8888aa;font-size:.82rem;margin-top:.3rem;">Accesso riservato</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.8rem;">
+          <input id="authPwd" type="password" placeholder="Password" autocomplete="current-password"
+            style="background:#1a1a24;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 14px;color:#e8e8f0;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;"
+            onfocus="this.style.borderColor='#e6503c'" onblur="this.style.borderColor='rgba(255,255,255,.07)'">
+          <div id="authErr" style="color:#e6503c;font-size:.78rem;min-height:1rem;text-align:center;"></div>
+          <button id="authBtn"
+            style="background:#e6503c;color:#fff;border:none;border-radius:8px;padding:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:background .18s;"
+            onmouseover="this.style.background='#ff6b50'" onmouseout="this.style.background='#e6503c'">
+            Accedi
+          </button>
+        </div>
+      </div>
+      <style>@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(230,80,60,.5)}50%{box-shadow:0 0 0 6px rgba(230,80,60,0)}}</style>
+    `;
+    document.body.appendChild(overlay);
+
+    function attempt() {
+      var pwd = document.getElementById('authPwd').value;
+      if (!pwd) return;
+      document.getElementById('authBtn').textContent = '…';
+      sha256(pwd).then(function(hash) {
+        fetch(AUTH_URL + '?t=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (hash === data.hash) {
+              sessionStorage.setItem(SESSION_KEY, hash);
+              overlay.remove();
+              onSuccess();
+            } else {
+              document.getElementById('authErr').textContent = 'Password errata';
+              document.getElementById('authBtn').textContent = 'Accedi';
+              document.getElementById('authPwd').value = '';
+              document.getElementById('authPwd').focus();
+            }
+          })
+          .catch(function() {
+            document.getElementById('authErr').textContent = 'Errore di rete, riprova';
+            document.getElementById('authBtn').textContent = 'Accedi';
+          });
+      });
+    }
+
+    document.getElementById('authBtn').addEventListener('click', attempt);
+    document.getElementById('authPwd').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') attempt();
+      document.getElementById('authErr').textContent = '';
+    });
+    setTimeout(function() { document.getElementById('authPwd').focus(); }, 100);
+  }
+
+  function checkAuth(onSuccess) {
+    var saved = sessionStorage.getItem(SESSION_KEY);
+    if (!saved) { showLogin(onSuccess); return; }
+    fetch(AUTH_URL + '?t=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (saved === data.hash) { onSuccess(); }
+        else { sessionStorage.removeItem(SESSION_KEY); showLogin(onSuccess); }
+      })
+      .catch(function() {
+        // Se non riesce a raggiungere auth.json ma ha sessione valida, lascia passare
+        onSuccess();
+      });
+  }
+
+  // Blocca il body finché non autenticato
+  document.body.style.visibility = 'hidden';
+  window.addEventListener('DOMContentLoaded', function() {
+    checkAuth(function() {
+      document.body.style.visibility = 'visible';
+    });
+  });
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guida TV — StreamItalia</title>
