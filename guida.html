@@ -263,9 +263,11 @@ function parseTime(val) {
 
 // ── EPG Sources (direct GitHub fetch, no server needed) ────────
 var EPG_SOURCES = [
-  'https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy1.xml',
-  'https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy2.xml',
-  'https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy3.xml'
+  // epg.pw - provider italiano con CORS aperto
+  'https://epg.pw/xmltv/epg_it.xml',
+  // corsproxy.io davanti a globetvapp come fallback
+  'https://corsproxy.io/?url=https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy1.xml',
+  'https://corsproxy.io/?url=https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy2.xml'
 ];
 
 function decodeEnt(s) {
