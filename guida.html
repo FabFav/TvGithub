@@ -261,34 +261,59 @@ function parseTime(val) {
   return isNaN(t) ? null : t;
 }
 
+// ── EPG Sources (direct GitHub fetch, no server needed) ────────
+var EPG_SOURCES = [
+  'https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy1.xml',
+  'https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy2.xml',
+  'https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy3.xml'
+];
+
+function decodeEnt(s) {
+  return String(s||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#39;/g,"'").replace(/&#(\d+);/g,function(_,n){return String.fromCharCode(Number(n));});
+}
+
+function parseXmlTV(xml) {
+  var channels=[], programs=[], m;
+  var chRe=/<channel\s+id="([^"]+)"[^>]*>([\s\S]*?)<\/channel>/g;
+  while((m=chRe.exec(xml))!==null){
+    var nameM=m[2].match(/<display-name[^>]*>([^<]+)<\/display-name>/);
+    var iconM=m[2].match(/<icon\s+src="([^"]+)"/);
+    if(nameM) channels.push({id:m[1],name:decodeEnt(nameM[1].trim()),logo:iconM?iconM[1]:''});
+  }
+  var pgRe=/<programme\s[^>]*start="([^"]+)"[^>]*stop="([^"]+)"[^>]*channel="([^"]+)"[^>]*>([\s\S]*?)<\/programme>/g;
+  while((m=pgRe.exec(xml))!==null){
+    var titleM=m[4].match(/<title[^>]*>([^<]+)<\/title>/);
+    var descM=m[4].match(/<desc[^>]*>([\s\S]*?)<\/desc>/);
+    if(titleM) programs.push({channel:m[3],start:m[1],stop:m[2],title:decodeEnt(titleM[1].trim()),desc:descM?decodeEnt(descM[1].trim()).slice(0,400):''});
+  }
+  return {channels:channels,programs:programs};
+}
+
 // ── Load EPG data ──────────────────────────────────────────────
 function loadEpg() {
-  fetch('/api/epg')
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(data) {
-      epgData = data;
-      if (!data.channels || !data.channels.length) throw new Error('Nessun canale');
-      allChannels = data.channels.slice().sort(function(a, b) {
-        var ia = dttRank(a.name), ib = dttRank(b.name);
-        if (ia !== ib) return ia - ib;
-        return (a.name || '').localeCompare(b.name || '', 'it');
-      });
-      renderSidebar(allChannels);
-    })
-    .catch(function(err) {
-      document.getElementById('sbList').innerHTML =
-        '<div style="padding:1rem;color:var(--red);font-size:.78rem">&#9888; ' + esc(err.message) + '</div>';
-      document.getElementById('main').innerHTML =
-        '<div class="error-box">' +
-        '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
-        '<h3>Guida TV non disponibile</h3>' +
-        '<p>' + esc(err.message) + '</p>' +
-        '<button class="btn btn-primary" style="margin-top:.5rem" onclick="location.reload()">Riprova</button>' +
-        '</div>';
-    });
+  function trySource(idx) {
+    if (idx >= EPG_SOURCES.length) {
+      var msg = 'Nessuna sorgente EPG disponibile';
+      document.getElementById('sbList').innerHTML = '<div style="padding:1rem;color:var(--red);font-size:.78rem">&#9888; ' + esc(msg) + '</div>';
+      document.getElementById('main').innerHTML = '<div class="error-box"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><h3>Guida TV non disponibile</h3><p>' + esc(msg) + '</p><button class="btn btn-primary" style="margin-top:.5rem" onclick="location.reload()">Riprova</button></div>';
+      return;
+    }
+    fetch(EPG_SOURCES[idx])
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+      .then(function(xml){
+        var parsed = parseXmlTV(xml);
+        if (!parsed.channels.length) throw new Error('Nessun canale');
+        epgData = { channels: parsed.channels, programs: parsed.programs };
+        allChannels = parsed.channels.slice().sort(function(a,b){
+          var ia=dttRank(a.name), ib=dttRank(b.name);
+          if(ia!==ib) return ia-ib;
+          return (a.name||'').localeCompare(b.name||'','it');
+        });
+        renderSidebar(allChannels);
+      })
+      .catch(function(){ trySource(idx+1); });
+  }
+  trySource(0);
 }
 
 // ── Sidebar ────────────────────────────────────────────────────
