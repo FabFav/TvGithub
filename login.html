@@ -6,96 +6,26 @@
 <title>StreamItalia — Accesso</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: #0a0a0f;
-  color: #e8e8f0;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-.card {
-  background: #16161f;
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 16px;
-  padding: 2.2rem 2rem;
-  width: 100%;
-  max-width: 360px;
-  box-shadow: 0 30px 80px rgba(0,0,0,.8);
-}
-.logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.2rem;
-  letter-spacing: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  margin-bottom: .3rem;
-}
-.dot {
-  width: 9px; height: 9px;
-  background: #e6503c;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-  flex-shrink: 0;
-}
-@keyframes pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(230,80,60,.5); }
-  50%      { box-shadow: 0 0 0 6px rgba(230,80,60,0); }
-}
-.subtitle {
-  text-align: center;
-  color: #8888aa;
-  font-size: .82rem;
-  margin-bottom: 1.8rem;
-}
-.field { display: flex; flex-direction: column; gap: .8rem; }
-input[type=password] {
-  background: #1a1a24;
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 8px;
-  padding: 11px 14px;
-  color: #e8e8f0;
-  font-family: 'DM Sans', sans-serif;
-  font-size: .95rem;
-  outline: none;
-  transition: border-color .2s;
-}
-input[type=password]:focus { border-color: #e6503c; }
-input[type=password]::placeholder { color: #505068; }
-.err {
-  color: #e6503c;
-  font-size: .78rem;
-  min-height: 1.1rem;
-  text-align: center;
-}
-button {
-  background: #e6503c;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 11px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: .92rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .18s;
-  letter-spacing: .3px;
-}
-button:hover { background: #ff6b50; }
-button:disabled { background: #555; cursor: default; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e8e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.card{background:#16161f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:2.2rem 2rem;width:100%;max-width:360px;box-shadow:0 30px 80px rgba(0,0,0,.8)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:.3rem}
+.dot{width:9px;height:9px;background:#e6503c;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(230,80,60,.5)}50%{box-shadow:0 0 0 6px rgba(230,80,60,0)}}
+.subtitle{text-align:center;color:#8888aa;font-size:.82rem;margin-bottom:1.8rem}
+.field{display:flex;flex-direction:column;gap:.8rem}
+input[type=password]{background:#1a1a24;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:11px 14px;color:#e8e8f0;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s}
+input[type=password]:focus{border-color:#e6503c}
+input[type=password]::placeholder{color:#505068}
+.err{color:#e6503c;font-size:.78rem;min-height:1.1rem;text-align:center}
+button{background:#e6503c;color:#fff;border:none;border-radius:8px;padding:11px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;transition:background .18s;letter-spacing:.3px}
+button:hover{background:#ff6b50}
+button:disabled{background:#555;cursor:default}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="logo">
-    <div class="dot"></div>
-    Stream<span style="color:#e6503c">Italia</span>
-  </div>
+  <div class="logo"><div class="dot"></div>Stream<span style="color:#e6503c">Italia</span></div>
   <div class="subtitle">Accesso riservato</div>
   <div class="field">
     <input type="password" id="pwd" placeholder="Password" autocomplete="current-password">
@@ -103,9 +33,8 @@ button:disabled { background: #555; cursor: default; }
     <button id="btn" onclick="doLogin()">Accedi</button>
   </div>
 </div>
-
 <script>
-var AUTH_URL = 'https://raw.githubusercontent.com/FabFav/TV/main/auth.json';
+var HASH = '1f2857a2eded09f41f16cf717712eab11db6aef24f959f789edce46bddafd0a8';
 
 function sha256(str) {
   return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
@@ -120,34 +49,18 @@ function doLogin() {
   var pwd = document.getElementById('pwd').value;
   if (!pwd) return;
   var btn = document.getElementById('btn');
-  var err = document.getElementById('err');
-  btn.disabled = true;
-  btn.textContent = '...';
-  err.textContent = '';
-
+  btn.disabled = true; btn.textContent = '...';
+  document.getElementById('err').textContent = '';
   sha256(pwd).then(function(hash) {
-    fetch(AUTH_URL + '?t=' + Date.now())
-      .then(function(r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function(data) {
-        if (hash === data.hash) {
-          sessionStorage.setItem('si_auth', 'ok');
-          window.location.replace('index.html');
-        } else {
-          err.textContent = 'Password errata';
-          btn.disabled = false;
-          btn.textContent = 'Accedi';
-          document.getElementById('pwd').value = '';
-          document.getElementById('pwd').focus();
-        }
-      })
-      .catch(function(e) {
-        err.textContent = 'Errore di rete — riprova';
-        btn.disabled = false;
-        btn.textContent = 'Accedi';
-      });
+    if (hash === HASH) {
+      sessionStorage.setItem('si_auth','ok');
+      window.location.replace('index.html');
+    } else {
+      document.getElementById('err').textContent = 'Password errata';
+      btn.disabled = false; btn.textContent = 'Accedi';
+      document.getElementById('pwd').value = '';
+      document.getElementById('pwd').focus();
+    }
   });
 }
 
@@ -156,6 +69,7 @@ document.getElementById('pwd').addEventListener('keydown', function(e) {
   document.getElementById('err').textContent = '';
 });
 
+if (sessionStorage.getItem('si_auth') === 'ok') window.location.replace('index.html');
 document.getElementById('pwd').focus();
 </script>
 </body>
