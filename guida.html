@@ -7,10 +7,12 @@
 
 <style>
 :root {
-  --bg:#0a0a0f; --bg2:#111118; --bg3:#1a1a24;
+  --bg:#0a0a0f; 
+  --bg2:#111118; 
+  --bg3:#1a1a24;
   --border:rgba(255,255,255,.07);
-  --text:#e8e8f0; --text2:#8888aa;
-  --red:#e6503c;
+  --text:#e8e8f0; 
+  --text2:#8888aa;
 }
 
 body {
@@ -25,7 +27,6 @@ header {
   height:60px;
   display:flex;
   align-items:center;
-  gap:10px;
   padding:0 15px;
   background:var(--bg2);
   border-bottom:1px solid var(--border);
@@ -65,7 +66,6 @@ iframe {
 
 <body>
 
-<!-- Se vuoi mantenere login, lascia; altrimenti commenta -->
 <script>
 if(sessionStorage.getItem('si_auth')!=='ok'){
   window.location.replace('login.html');
@@ -74,19 +74,11 @@ if(sessionStorage.getItem('si_auth')!=='ok'){
 
 <header>
   <a href="index.html" class="btn">⬅ Torna ai canali</a>
-  <a href="#" class="btn">ℹ Info progetto</a>
-  <button class="btn" onclick="toggleTheme()">🌓 Tema</button>
 </header>
 
 <div class="main">
   <iframe src="https://www.superguidatv.it/ora-in-onda/"></iframe>
 </div>
-
-<script>
-function toggleTheme() {
-  document.body.classList.toggle('light');
-}
-</script>
 
 </body>
 </html>
