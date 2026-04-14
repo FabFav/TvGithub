@@ -263,11 +263,8 @@ function parseTime(val) {
 
 // ── EPG Sources (direct GitHub fetch, no server needed) ────────
 var EPG_SOURCES = [
-  // epg.pw - provider italiano con CORS aperto
-  'https://epg.pw/xmltv/epg_it.xml',
-  // corsproxy.io davanti a globetvapp come fallback
-  'https://corsproxy.io/?url=https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy1.xml',
-  'https://corsproxy.io/?url=https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy2.xml'
+  // File EPG aggiornato ogni giorno dalla GitHub Action nel repo
+  'https://raw.githubusercontent.com/FabFav/TV/main/epg/italy.xml'
 ];
 
 function decodeEnt(s) {
@@ -276,17 +273,32 @@ function decodeEnt(s) {
 
 function parseXmlTV(xml) {
   var channels=[], programs=[], m;
+
+  // Parse channels
   var chRe=/<channel\s+id="([^"]+)"[^>]*>([\s\S]*?)<\/channel>/g;
   while((m=chRe.exec(xml))!==null){
     var nameM=m[2].match(/<display-name[^>]*>([^<]+)<\/display-name>/);
     var iconM=m[2].match(/<icon\s+src="([^"]+)"/);
     if(nameM) channels.push({id:m[1],name:decodeEnt(nameM[1].trim()),logo:iconM?iconM[1]:''});
   }
-  var pgRe=/<programme\s[^>]*start="([^"]+)"[^>]*stop="([^"]+)"[^>]*channel="([^"]+)"[^>]*>([\s\S]*?)<\/programme>/g;
+
+  // Parse programmes — attributi in qualsiasi ordine
+  var pgRe=/<programme\s([^>]+)>([\s\S]*?)<\/programme>/g;
   while((m=pgRe.exec(xml))!==null){
-    var titleM=m[4].match(/<title[^>]*>([^<]+)<\/title>/);
-    var descM=m[4].match(/<desc[^>]*>([\s\S]*?)<\/desc>/);
-    if(titleM) programs.push({channel:m[3],start:m[1],stop:m[2],title:decodeEnt(titleM[1].trim()),desc:descM?decodeEnt(descM[1].trim()).slice(0,400):''});
+    var attrs=m[1], inner=m[2];
+    var startM=attrs.match(/start="([^"]+)"/);
+    var stopM =attrs.match(/stop="([^"]+)"/);
+    var chanM =attrs.match(/channel="([^"]+)"/);
+    if(!startM||!stopM||!chanM) continue;
+    var titleM=inner.match(/<title[^>]*>([^<]+)<\/title>/);
+    var descM =inner.match(/<desc[^>]*>([\s\S]*?)<\/desc>/);
+    if(titleM) programs.push({
+      channel: chanM[1],
+      start:   startM[1],
+      stop:    stopM[1],
+      title:   decodeEnt(titleM[1].trim()),
+      desc:    descM ? decodeEnt(descM[1].trim()).slice(0,400) : ''
+    });
   }
   return {channels:channels,programs:programs};
 }
