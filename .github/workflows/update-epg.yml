@@ -39,6 +39,15 @@ jobs:
           # Sorgente 1 — tvit.leicaflorianrobert.dev (aggiornata giornalmente)
           download "https://tvit.leicaflorianrobert.dev/epg/list.xml" && exit 0
 
+          # Sorgente 2 — globetvapp italy1
+          download "https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy1.xml" && exit 0
+
+          # Sorgente 3 — globetvapp italy2
+          download "https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy2.xml" && exit 0
+
+          # Sorgente 4 — globetvapp italy3
+          download "https://raw.githubusercontent.com/globetvapp/epg/main/Italy/italy3.xml" && exit 0
+
           echo "ERRORE: tutte le sorgenti EPG non disponibili."
           exit 1
 
